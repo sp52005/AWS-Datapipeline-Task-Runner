@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# aws_task_runner    AWS Datapipeline Task Runner
+#
+# chkconfig:   345 99 01
+# description: aws_task_runner is a script to poll & execute AWS Datapipeline Task.
+SERVICE_NAME=aws_task_runner
+PATH_TO_JAR=/opt/aws/task_runner/TaskRunner-<%= @version %>.jar
+PID_FILE=/var/run/${SERVICE_NAME}.pid
+WORKER_GROUP=$(hostname | sed 's/ip-/wg-s-/g')
+PIPELINE_REGION=<%= @pipeline_region %>
+
+start() {
+    echo "Starting $SERVICE_NAME ..."
+    if [ ! -f $PID_FILE ]; then
+        nohup java -jar $PATH_TO_JAR --workerGroup=$WORKER_GROUP --region=$PIPELINE_REGION 2> /dev/null > /dev/null &
+        echo $! > $PID_FILE
+        echo "$SERVICE_NAME started ..."
+        return 0
+    else
+        echo "$SERVICE_NAME is already running ..."
+        return 1
+    fi
+
+}
+
+stop(){
+    if [ -f $PID_FILE ]; then
+        PID=$(cat $PID_FILE);
+        echo "$SERVICE_NAME stoping ..."
+        kill -KILL $PID;
+        echo "$SERVICE_NAME stopped ..."
+        rm $PID_FILE
+    else
+        echo "$SERVICE_NAME is not running ..."
+    fi    
+}
+
+status() {
+    if [ -f $PID_FILE ] ; then
+        pid=`cat "$PID_FILE"`
+        if kill -0 $pid > /dev/null 2> /dev/null ; then
+            # process by this pid is running.
+            # It may not be our pid, but that's what you get with just pidfiles.
+            # TODO(sissel): Check if this process seems to be the same as the one we
+            # expect. It'd be nice to use flock here, but flock uses fork, not exec,
+            # so it makes it quite awkward to use in this case.
+            return 0
+        else
+            return 2 # program is dead but pid file exists
+        fi
+    else
+        return 3 # program is not running
+    fi
+}
+
+
+case $1 in
+    start)
+        status
+        code=$?
+        if [ $code -eq 0 ]; then
+          echo "$SERVICE_NAME is already running"
+        else
+          start
+          code=$?
+        fi
+        exit $code
+    ;;
+    stop)
+        stop
+    ;;
+    status)
+        status
+        code=$?
+        if [ $code -eq 0 ] ; then
+          echo "$SERVICE_NAME is running"
+        else
+          echo "$SERVICE_NAME is not running"
+        fi
+        exit $code
+    ;;
+    restart)
+        stop
+        start
+    ;;
+esac
