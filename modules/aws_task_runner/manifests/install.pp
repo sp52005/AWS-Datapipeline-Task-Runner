@@ -4,6 +4,8 @@ class aws_task_runner::install (
     $version         = $aws_task_runner::version,
     $task_runner_url = $aws_task_runner::task_runner_url,
     $pipeline_region = $aws_task_runner::pipeline_region,
+    $s3_log_uri      = $aws_task_runner::s3_log_uri,
+    $worker_group    = $aws_task_runner::worker_group,
 ) {
     file { "/opt/aws/task_runner":
         ensure  => "directory",

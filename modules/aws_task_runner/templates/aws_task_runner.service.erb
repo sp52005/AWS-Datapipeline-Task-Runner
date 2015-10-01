@@ -7,13 +7,15 @@
 SERVICE_NAME=aws_task_runner
 PATH_TO_JAR=/opt/aws/task_runner/TaskRunner-<%= @version %>.jar
 PID_FILE=/var/run/${SERVICE_NAME}.pid
-WORKER_GROUP=$(hostname | sed 's/ip-/wg-s-/g')
+#WORKER_GROUP=$(hostname | sed 's/ip-/wg-s-/g')
+WORKER_GROUP=<%= @worker_group %>
 PIPELINE_REGION=<%= @pipeline_region %>
+PIPELINE_S3_LOG_URI=<%= @s3_log_uri %>
 
 start() {
     echo "Starting $SERVICE_NAME ..."
     if [ ! -f $PID_FILE ]; then
-        nohup java -jar $PATH_TO_JAR --workerGroup=$WORKER_GROUP --region=$PIPELINE_REGION 2> /dev/null > /dev/null &
+        nohup java -jar $PATH_TO_JAR --workerGroup=$WORKER_GROUP --region=$PIPELINE_REGION --logUri=$PIPELINE_S3_LOG_URI 2> /dev/null > /dev/null &
         echo $! > $PID_FILE
         echo "$SERVICE_NAME started ..."
         return 0

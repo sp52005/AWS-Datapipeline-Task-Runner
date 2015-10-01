@@ -5,4 +5,6 @@ class aws_task_runner::params {
     $task_runner_url = 'https://s3.amazonaws.com/datapipeline-us-east-1/us-east-1/software/latest/TaskRunner'
     $endpoint        = 'https://datapipeline.ap-northeast-1.amazonaws.com'
     $pipeline_region = 'ap-northeast-1'
+    $s3_log_uri      = 's3://logstore/datapipeline/host_log'
+    $worker_group    = 'wg-test'
 }
